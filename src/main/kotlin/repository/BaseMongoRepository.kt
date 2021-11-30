@@ -15,7 +15,12 @@ interface BaseMongoRepository<T> {
     /**
      * Insert new document to collection.
      */
-    fun insert()
+    fun insert(entity: T)
+
+    /**
+     * Insert list of new documents to collection.
+     */
+    fun insertMany(entities: List<T>)
 
     /**
      * Update existed document in collection.

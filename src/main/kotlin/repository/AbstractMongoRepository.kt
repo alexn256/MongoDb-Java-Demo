@@ -5,13 +5,19 @@ import org.bson.Document
 import org.bson.conversions.Bson
 import org.bson.types.ObjectId
 import util.MongoUtil
+import java.lang.IllegalArgumentException
 
 /**
- * @param name MongoDb collection.
+ * Base MongoDb repository.
+ *
+ * @param name MongoDb collection name.
  */
-abstract class AbstractMongoRepository<T>(private val name: String) : BaseMongoRepository<T> {
+abstract class AbstractMongoRepository<T>(
+    private val name: String,
+    private val type: Class<T>
+    ) : BaseMongoRepository<T> {
 
-    private val collection: MongoCollection<Document> = MongoUtil.getCollection(name)
+    private val collection: MongoCollection<T> = MongoUtil.getCollection(name, type)
 
     override fun deleteById(id: String) {
         try {
@@ -22,8 +28,22 @@ abstract class AbstractMongoRepository<T>(private val name: String) : BaseMongoR
         }
     }
 
-    override fun insert() {
-        TODO("Not yet implemented")
+    override fun insert(entity: T) {
+        try {
+            collection.insertOne(entity)
+            println("One entity $entity was inserted.")
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    override fun insertMany(entities: List<T>) {
+        try {
+            collection.insertMany(entities)
+            println("${entities.size} entities were inserted.")
+        } catch (e: Exception) {
+            throw e
+        }
     }
 
     override fun update() {
@@ -31,7 +51,15 @@ abstract class AbstractMongoRepository<T>(private val name: String) : BaseMongoR
     }
 
     override fun findAll(): List<T> {
-        TODO("Not yet implemented")
+        try {
+            val entities = collection.find().toList()
+            if (entities.isNotEmpty()) {
+                println("${entities.size} entities were read from database.")
+            }
+            return entities
+        } catch (e: Exception) {
+            throw e
+        }
     }
 
     override fun findById(id: String) {
@@ -39,6 +67,12 @@ abstract class AbstractMongoRepository<T>(private val name: String) : BaseMongoR
     }
 
     override fun findByFilter(filter: Bson): T {
-        TODO("Not yet implemented")
+        try {
+            val result = collection.find()
+            println("1 entity was read from database.")
+            return result.first()
+        } catch (e: Exception) {
+            throw e
+        }
     }
 }
